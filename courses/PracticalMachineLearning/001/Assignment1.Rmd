@@ -1,0 +1,124 @@
+---
+title: "Practical Machine Learning: Assignment"
+output: html_document
+---
+
+# Introduction
+
+This assignment uses the data from Human Activity Recognition [1] project and builds a predictive model to predict activity quality from activity monitors. The classe variable in the training set indicates the activity quality.
+
+## Prepare Libraries
+
+Load the required libraries
+
+```{r}
+library(ggplot2)
+library(lattice)
+library(rpart)        # decision tree
+library(caret)        # caret package
+library(corrplot)     # correlation matrix plot
+library(randomForest) # random forest
+set.seed(3517)
+```
+```{r, echo=FALSE}
+# add setwd($path) with appropriate path to be able to read files
+```
+
+## Load training data
+
+Read the training data and replace the white space and #DIV/0! with "NA" for missing values.
+```{r}
+MyData=read.csv("pml-training.csv",header=T,na.strings=c(""," ","#DIV/0!"));
+                                                         ```
+## Data Cleaning
+
+Remove the columns with large number of NA values and other columns that will not contribute to the prediction. 
+
+The user_name column is removed because assumed that the prediction model should be subject independent.
+
+The column 160 (classe) is response/output (activity class label).
+
+```{r}
+test=MyData[,c(8:11,37:49,60:68,84:86,102,113:124,140,151:160)]
+dim(test)
+```
+
+## Feature Selection
+
+Calculate the correlation between predictors.
+
+```{r}
+# center and scale all the features but the response (last)
+test_scaled=scale(test[1:ncol(test)-1],center=TRUE,scale=TRUE)
+# compute the correlation matrix
+corMat = cor(test_scaled)
+# visualize the matrix, clustering features by correlation index.
+corrplot(corMat, order = "hclust")
+
+```
+
+Find the indices of predictors with more than 0.7 correlation.
+
+```{r}
+# Apply correlation filter at 0.70
+highlyCor = findCorrelation(corMat, 0.70)
+# Following predictors are higly correlated
+highlyCor
+```
+
+Filter highly correlated predictors to reduce the number of predictors
+```{r}
+test_filtered=test[,-highlyCor]
+dim(test); dim(test_filtered)
+```
+
+## Prepare trainig and test sets
+
+70% of data is used for training and 30% of data is used for testing purposes.
+
+```{r}
+inTrain=createDataPartition(test_filtered$classe,p=0.7,list=FALSE)
+training=test_filtered[inTrain,]
+testing=test_filtered[-inTrain,]
+dim(training); dim(testing)
+```
+
+## Model fitting
+
+First, try to fit decision tree with 4 fold cross validation
+```{r}
+modFit=train(classe ~.,method="rpart",data=training,trControl=trainControl(method="cv",number=4))
+confusionMatrix(predict(modFit,training),training$classe)
+```
+
+Since the prediction accuracy of training set is barely over 50%, try to fit random forest with 4 fold cross validation
+
+```{r}
+modFit2=train(classe ~.,method="rf",data=training,trControl=trainControl(method="cv",number=4))
+#modFit2=train(classe ~.,method="rf",data=training)
+confusionMatrix(predict(modFit2,training),training$classe)
+```
+## Out of sample error
+
+Used the testing data to calculate the out of sample error rate since this data is not used during the training;
+
+```{r}
+confusionMatrix(predict(modFit2,testing),testing$classe)
+```
+The estimated out of sample (generalization) error rate[2] is (100.0-98.2=1.8%).
+
+## Conclusion
+
+In this assignment, the given data is cleaned after finding columns/predictors having large number of NA values, and highly correlated predictors. 
+
+We tried to fit a decision tree and a decision tree with 4 fold cross validation. The training with 4 fold cross validation improved the prediction accuracy for the training set but the in sample error rate is still too high for a meaningful prediction.
+
+Then, we tried to fit a random forest. This model produced 100% accurate prediction for training set and 98.2% accurate prediction for test set.
+
+# References
+
+[1] Human Activity Recognition, http://groupware.les.inf.puc-rio.br/har
+
+[2] Week-1: In sample and out Of sample error
+
+
