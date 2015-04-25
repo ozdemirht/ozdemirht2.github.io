@@ -89,7 +89,7 @@ library(randomForest) # random forest</code></pre>
 <h2>Data Cleaning</h2>
 <p>Remove the columns with large number of NA values and other columns that will not contribute to the prediction.</p>
 <p>The user_name column is removed because assumed that the prediction model should be subject independent.</p>
-<p>The column 160 (classe) is response/output (activity quality class label).</p>
+<p>The column 160 (classe) is response/output (activity class label).</p>
 <pre class="r"><code>test=MyData[,c(8:11,37:49,60:68,84:86,102,113:124,140,151:160)]
 dim(test)</code></pre>
 <pre><code>## [1] 19622    53</code></pre>
@@ -233,19 +233,18 @@ confusionMatrix(predict(modFit2,training),training$classe)</code></pre>
 ## Detection Rate         0.2841   0.1890   0.1706   0.1587   0.1833
 ## Detection Prevalence   0.2875   0.1925   0.1767   0.1597   0.1835
 ## Balanced Accuracy      0.9970   0.9859   0.9856   0.9838   0.9985</code></pre>
-<p>The estimated out of sample (generalization) error rate[2] is (100.0-98=2%).</p>
+<p>The estimated out of sample (generalization) error rate[2] is (100.0-98.2=1.8%).</p>
 </div>
 <div id="conclusion" class="section level2">
 <h2>Conclusion</h2>
 <p>In this assignment, the given data is cleaned after finding columns/predictors having large number of NA values, and highly correlated predictors.</p>
 <p>We tried to fit a decision tree and a decision tree with 4 fold cross validation. The training with 4 fold cross validation improved the prediction accuracy for the training set but the in sample error rate is still too high for a meaningful prediction.</p>
-<p>Then, we tried to fit a random forest. This model produced 100% accurate prediction for training set and more than 98% accurate prediction for test set.</p>
+<p>Then, we tried to fit a random forest. This model produced 100% accurate prediction for training set and 98.2% accurate prediction for test set.</p>
 </div>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>
-<p>[1] Human Activity Recognition, <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a></p>
-<p>[2] Week-1: In sample and out Of sample error</p>
+<p>[1] Human Activity Recognition, <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> [2] Week-1: In sample and out Of sample error</p>
 </div>
 
 

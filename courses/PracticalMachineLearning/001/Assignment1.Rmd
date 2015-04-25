@@ -36,7 +36,7 @@ Remove the columns with large number of NA values and other columns that will no
 
 The user_name column is removed because assumed that the prediction model should be subject independent.
 
-The column 160 (classe) is response/output (activity quality class label).
+The column 160 (classe) is response/output (activity class label).
 
 ```{r}
 test=MyData[,c(8:11,37:49,60:68,84:86,102,113:124,140,151:160)]
@@ -105,7 +105,7 @@ Used the testing data to calculate the out of sample error rate since this data 
 ```{r}
 confusionMatrix(predict(modFit2,testing),testing$classe)
 ```
-The estimated out of sample (generalization) error rate[2] is (100.0-98=2%).
+The estimated out of sample (generalization) error rate[2] is (100.0-98.2=1.8%).
 
 ## Conclusion
 
@@ -113,7 +113,7 @@ In this assignment, the given data is cleaned after finding columns/predictors h
 
 We tried to fit a decision tree and a decision tree with 4 fold cross validation. The training with 4 fold cross validation improved the prediction accuracy for the training set but the in sample error rate is still too high for a meaningful prediction.
 
-Then, we tried to fit a random forest. This model produced 100% accurate prediction for training set and more than 98% accurate prediction for test set.
+Then, we tried to fit a random forest. This model produced 100% accurate prediction for training set and 98.2% accurate prediction for test set.
 
 # References
 
