@@ -117,8 +117,7 @@ cm=confusionMatrix(predict(modFit2,testing),testing$classe)
 print(cm)
 ```
 The estimated out of sample (generalization) error rate [2] is 
- (100.0-'r cm.overall[["Accuracy"]]*100`=
-        'r 100.0-cm.overall[["Accuracy"]]*100`%.
+ (100.0- 98.0)= 2%.
 
 ## Conclusion
 
