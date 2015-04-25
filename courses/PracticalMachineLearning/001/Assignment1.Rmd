@@ -1,17 +1,17 @@
 ---
 title: "Practical Machine Learning: Assignment"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
 # Introduction
-
-This assignment uses the data from Human Activity Recognition [1] project and builds a predictive model to predict activity quality from activity monitors. The classe variable in the training set indicates the activity quality.
+This assignment uses the data from Human Activity Recognition [1] project and builds a predictive model to predict activity quality from activity monitors. The classe variable indicates the activity quality.
 
 ## Prepare Libraries
 
 Load the required libraries
 
-```{r}
+```{r chunk_1, results="hide"}
 library(ggplot2)
 library(lattice)
 library(rpart)        # decision tree
@@ -32,11 +32,11 @@ MyData=read.csv("pml-training.csv",header=T,na.strings=c(""," ","#DIV/0!"));
                                                          ```
 ## Data Cleaning
 
-Remove the columns with large number of NA values and other columns that will not contribute to the prediction. 
+Remove the columns with large number of missing values (such as NA values) since these columns will not contribute to the prediction. 
 
-The user_name column is removed because assumed that the prediction model should be subject independent.
+The user_name is removed because it is assumed that the prediction model should be subject independent.
 
-The column 160 (classe) is response/output (activity class label).
+The column 160 (classe) is response/output (activity quality class label).
 
 ```{r}
 test=MyData[,c(8:11,37:49,60:68,84:86,102,113:124,140,151:160)]
@@ -71,6 +71,8 @@ Filter highly correlated predictors to reduce the number of predictors
 test_filtered=test[,-highlyCor]
 dim(test); dim(test_filtered)
 ```
+This step reduces the number of predictors 
+from `r dim(test)[2]` to `r dim(test_filtered)[2]`
 
 ## Prepare trainig and test sets
 
@@ -85,40 +87,53 @@ dim(training); dim(testing)
 
 ## Model fitting
 
-First, try to fit decision tree with 4 fold cross validation
+First, try to fit decision tree with 4 fold cross validation to find the best model;
+
 ```{r}
 modFit=train(classe ~.,method="rpart",data=training,trControl=trainControl(method="cv",number=4))
 confusionMatrix(predict(modFit,training),training$classe)
 ```
 
-Since the prediction accuracy of training set is barely over 50%, try to fit random forest with 4 fold cross validation
+Since the prediction accuracy of training set is barely over 50%, try to fit random forest with 4 fold cross validation to find the best model by using the training data;
 
 ```{r}
 modFit2=train(classe ~.,method="rf",data=training,trControl=trainControl(method="cv",number=4))
 #modFit2=train(classe ~.,method="rf",data=training)
 confusionMatrix(predict(modFit2,training),training$classe)
 ```
+
+The OOB error[3] in final model gives an unbiased estimate of the test set error;
+
+```{r}
+modFit2.rf$finalModel
+```
+
 ## Out of sample error
 
-Used the testing data to calculate the out of sample error rate since this data is not used during the training;
+Used the testing data to estimate the out of sample error rate since the testing data is not used during the training;
 
 ```{r}
 confusionMatrix(predict(modFit2,testing),testing$classe)
 ```
-The estimated out of sample (generalization) error rate[2] is (100.0-98.2=1.8%).
+The estimated out of sample (generalization) error rate [2] is (100.0-98=2%).
 
 ## Conclusion
 
-In this assignment, the given data is cleaned after finding columns/predictors having large number of NA values, and highly correlated predictors. 
+In this assignment, 
+the given data is cleaned by removing predictors with large number of missing values, and predictors that are highly correlated (>0.7). 
 
-We tried to fit a decision tree and a decision tree with 4 fold cross validation. The training with 4 fold cross validation improved the prediction accuracy for the training set but the in sample error rate is still too high for a meaningful prediction.
+To build a model, we tried to fit a decision tree and a decision tree with 4 fold cross validation. The model obtained with 4 fold cross validation improved the prediction accuracy for the training set, but the in sample error rate is still too high for a meaningful prediction.
 
-Then, we tried to fit a random forest. This model produced 100% accurate prediction for training set and 98.2% accurate prediction for test set.
+Then, we tried to fit a random forest with 4 fold cross validation. 
+The final model produced 100% accurate predictions for the training set,
+and more than 98% accurate predictions for the test set.
 
 # References
 
 [1] Human Activity Recognition, http://groupware.les.inf.puc-rio.br/har
 
 [2] Week-1: In sample and out Of sample error
+
+[3] The out-of-bag (oob) error estimate, http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#ooberr
 
 
