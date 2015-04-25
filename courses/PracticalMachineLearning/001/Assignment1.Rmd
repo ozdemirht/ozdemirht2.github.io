@@ -105,7 +105,7 @@ confusionMatrix(predict(modFit2,training),training$classe)
 The OOB error[3] in final model gives an unbiased estimate of the test set error;
 
 ```{r}
-modFit2.rf$finalModel
+modFit2$finalModel
 ```
 
 ## Out of sample error
@@ -113,9 +113,12 @@ modFit2.rf$finalModel
 Used the testing data to estimate the out of sample error rate since the testing data is not used during the training;
 
 ```{r}
-confusionMatrix(predict(modFit2,testing),testing$classe)
+cm=confusionMatrix(predict(modFit2,testing),testing$classe)
+print(cm)
 ```
-The estimated out of sample (generalization) error rate [2] is (100.0-98=2%).
+The estimated out of sample (generalization) error rate [2] is 
+ (100.0-'r cm.overall[["Accuracy"]]*100`=
+        'r 100.0-cm.overall[["Accuracy"]]*100`%.
 
 ## Conclusion
 
