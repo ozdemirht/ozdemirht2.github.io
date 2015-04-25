@@ -27,9 +27,10 @@ set.seed(3517)
 ## Load training data
 
 Read the training data and replace the white space and #DIV/0! with "NA" for missing values.
-```{r}
+```{r read_pml_training_file}
 MyData=read.csv("pml-training.csv",header=T,na.strings=c(""," ","#DIV/0!"));
-                                                         ```
+                                                         
+```
 ## Data Cleaning
 
 Remove the columns with large number of missing values (such as NA values) since these columns will not contribute to the prediction. 
@@ -38,20 +39,20 @@ The user_name is removed because it is assumed that the prediction model should 
 
 The column 160 (classe) is response/output (activity quality class label).
 
-```{r}
-test=MyData[,c(8:11,37:49,60:68,84:86,102,113:124,140,151:160)]
-dim(test)
+```{r cleanup_data}
+clean_data=MyData[,c(8:11,37:49,60:68,84:86,102,113:124,140,151:160)]
+dim(clean_data)
 ```
 
 ## Feature Selection
 
 Calculate the correlation between predictors.
 
-```{r}
+```{r calculate_correlation_btw_predictors}
 # center and scale all the features but the response (last)
-test_scaled=scale(test[1:ncol(test)-1],center=TRUE,scale=TRUE)
+clean_data_scaled=scale(clean_data[1:ncol(clean_data)-1],center=TRUE,scale=TRUE)
 # compute the correlation matrix
-corMat = cor(test_scaled)
+corMat = cor(clean_data_scaled)
 # visualize the matrix, clustering features by correlation index.
 corrplot(corMat, order = "hclust")
 
@@ -59,7 +60,7 @@ corrplot(corMat, order = "hclust")
 
 Find the indices of predictors with more than 0.7 correlation.
 
-```{r}
+```{r find_indices_of_correlated_predictors}
 # Apply correlation filter at 0.70
 highlyCor = findCorrelation(corMat, 0.70)
 # Following predictors are higly correlated
@@ -67,21 +68,21 @@ highlyCor
 ```
 
 Filter highly correlated predictors to reduce the number of predictors
-```{r}
-test_filtered=test[,-highlyCor]
-dim(test); dim(test_filtered)
+```{r obtain_filtered_clean_data}
+clean_data_filtered=clean_data[,-highlyCor]
+dim(clean_data); dim(clean_data_filtered)
 ```
 This step reduces the number of predictors 
-from `r dim(test)[2]` to `r dim(test_filtered)[2]`
+from `r dim(clean_data)[2]` to `r dim(clean_data_filtered)[2]`
 
 ## Prepare trainig and test sets
 
 70% of data is used for training and 30% of data is used for testing purposes.
 
-```{r}
-inTrain=createDataPartition(test_filtered$classe,p=0.7,list=FALSE)
-training=test_filtered[inTrain,]
-testing=test_filtered[-inTrain,]
+```{r create_training_testing_set}
+inTrain=createDataPartition(clean_data_filtered$classe,p=0.7,list=FALSE)
+training=clean_data_filtered[inTrain,]
+testing=clean_data_filtered[-inTrain,]
 dim(training); dim(testing)
 ```
 
@@ -89,14 +90,14 @@ dim(training); dim(testing)
 
 First, try to fit decision tree with 4 fold cross validation to find the best model;
 
-```{r}
+```{r fit_decision_tree_4fold}
 modFit=train(classe ~.,method="rpart",data=training,trControl=trainControl(method="cv",number=4))
 confusionMatrix(predict(modFit,training),training$classe)
 ```
 
 Since the prediction accuracy of training set is barely over 50%, try to fit random forest with 4 fold cross validation to find the best model by using the training data;
 
-```{r}
+```{r fit_randomForest_4fold}
 modFit2=train(classe ~.,method="rf",data=training,trControl=trainControl(method="cv",number=4))
 #modFit2=train(classe ~.,method="rf",data=training)
 confusionMatrix(predict(modFit2,training),training$classe)
@@ -104,7 +105,7 @@ confusionMatrix(predict(modFit2,training),training$classe)
 
 The OOB error[3] in final model gives an unbiased estimate of the test set error;
 
-```{r}
+```{r print_final_rpart_model}
 modFit2$finalModel
 ```
 
@@ -112,7 +113,7 @@ modFit2$finalModel
 
 Used the testing data to estimate the out of sample error rate since the testing data is not used during the training;
 
-```{r}
+```{r calculate_generalization_error}
 cm=confusionMatrix(predict(modFit2,testing),testing$classe)
 print(cm)
 ```
